@@ -138,6 +138,8 @@ Every team across every challenge uses the same core stack:
 | **At least one tool you built** | A Python function tool or custom MCP Toolbox tool authored by your team |
 | **Deployed to Google Cloud** | Live service running on **Agent Runtime** or **Cloud Run** |
 
+**Also already set up for you, and worth ten seconds now rather than later: Antigravity.** Your Google Skills lab environment includes a button that launches the **Antigravity IDE**, and the **Antigravity CLI** is one word away in Cloud Shell (`agy`). Neither is required, and nothing here depends on them, so do not lose time fighting one if it is not helping, though we strongly recommend using at least one because every lane has tedious boilerplate a coding agent will happily absorb. [Details in Step 3](#strongly-recommended-antigravity-the-ide-and-the-cli).
+
 ### Choosing your MCP server
 
 - **BigQuery's built-in MCP server** is the fastest path for structured discovery and table lookups.
@@ -189,15 +191,20 @@ You have **4.5 hours** and **8 to 10 teammates**. Spend twenty minutes on Step 0
 
 #### Front end lane (2 people)
 
+Three routes. **Pick deliberately and be ready to say why**, because your interface choice tells judges who you think the user is.
+
 | Option | Strength | Trade-off |
 |---|---|---|
-| **`adk web`** | Instant local and proxied testing while building | Developer tool look and feel |
-| **Gemini Enterprise** | Clean internal staff UX over Agent Runtime | Built for internal staff (which fits a legal-aid paralegal persona well if stated on purpose) |
-| **Custom web UI** | Tailored intake triage queue + Tenant Stabilization Brief card | Scope tightly so it finishes on time |
+| **`adk web`** | Fastest. Built in, works immediately, and where you should start | Developer tool look and feel. Fine while building, weak as a final product story unless justified |
+| **Gemini Enterprise** | Clean internal staff UX over Agent Runtime with minimal front-end code | Serves **internal** staff rather than the public (which fits a legal-aid paralegal persona well if stated on purpose) |
+| **Custom web UI** | Full control: an intake triage queue + Tenant Stabilization Brief card beats a raw chat log | Most work by far. Scope tightly so it finishes on time |
+
+- **Do not wait for a working agent.** Mock the response schema now, build against it, and swap in the live endpoint once the agent lane deploys.
+- **Whatever you build, the recorded demo runs on it.** Test it end to end before recording.
 
 #### Story lane (1 to 2 people, starting at minute zero)
 
-**What you hand in.** Four artifacts uploaded to `https://portal.angelhack.com/a4i-console` before the submission cutoff:
+**What you hand in.** Four artifacts uploaded to https://portal.angelhack.com/a4i-console before the submission cutoff:
 
 1. **Public GitHub repository link**
 2. **Google Skills project link** (with your deployed agent live on Cloud Run or Agent Runtime)
@@ -219,24 +226,91 @@ Whatever interface you choose, your agent should produce an actionable brief a p
 
 ### Step 1: Create the team repository
 
-1. Click **Use this template** -> **Create a new repository** (choose **Public**).
-2. Go to **Settings -> Collaborators** and add your teammates.
+**Repo owner only.**
+
+1. At the top of this page, click the green **Use this template** button -> **Create a new repository**. *(No button? Use **Fork** and tell a coach.)*
+2. Name it after your team, choose **Public**, and click **Create repository**.
+3. Go to **Settings -> Collaborators** and add every teammate's GitHub username.
+4. Paste the repo URL where everyone on your team can see it.
 
 ### Step 2: Get into your Google Cloud project
 
-Follow your facilitator's instructions to open your shared Google Skills project and Antigravity workspace. All teammates share one project, so coordinate dataset and service names.
+Follow your facilitator's instructions to open your shared Google Skills project. **There is one project per team.** You all share Owner access and see the same BigQuery datasets, which also means you can overwrite each other if you do not coordinate table and service names.
 
-### Step 3: Everyone: get into Cloud Shell or Antigravity
+### Step 3: Everyone: get into Cloud Shell
 
-Open Cloud Shell (`>_`) or launch the preconfigured **Antigravity IDE** / **Antigravity CLI (`agy`)** in your workstation terminal, clone your team's repository, and create lane branches (`git checkout -b data`, `agent`, `frontend`, `story`) so parallel work merges cleanly.
+**Cloud Shell is where you will work** (alongside your preconfigured Antigravity workstation if provided at your venue). It already has `gcloud`, `bq`, Python, Node, `git`, Docker, and the Antigravity CLI (`agy`) installed.
+
+1. In the Google Cloud console, click the **terminal icon (`>_`) in the top right** so Cloud Shell opens attached to *this* project and browser session.
+2. Clone your team's repository and enter it:
+
+   ```bash
+   git clone https://github.com/YOUR-TEAM/YOUR-REPO.git
+   cd YOUR-REPO
+   ```
+
+3. Open the repository as a workspace in Cloud Shell Editor:
+
+   ```bash
+   cloudshell workspace .
+   ```
+
+#### One repo, one branch per lane
+
+Eight to ten people committing straight to `main` will collide right before submission. Create a branch per lane from minute one:
+
+```bash
+git checkout -b data        # or agent, frontend, story
+```
+
+Merge into `main` whenever your lane has something another lane needs (such as the embedded table SQL or the deployed agent URL). Keep your files inside `$HOME` (your cloned repo), because `$HOME` persists across Cloud Shell restarts while directories outside it do not.
+
+Helpful references:
+[Using Cloud Shell](https://docs.cloud.google.com/shell/docs/using-cloud-shell)
+·
+[Cloud Shell Editor overview](https://docs.cloud.google.com/shell/docs/editor-overview)
+
+#### Strongly recommended: Antigravity, the IDE and the CLI
+
+Antigravity is Google's agentic coding environment, already available in two forms:
+
+- **The Antigravity IDE:** Launched from the button in your Google Skills lab environment. It reads your repository, proposes multi-file edits you review before accepting, runs terminal commands, and tests in a browser.
+- **The Antigravity CLI (`agy`):** Preinstalled in Cloud Shell with zero setup:
+
+  ```bash
+  agy
+  ```
+
+  Where it saves the most time in a 4.5-hour sprint:
+  - **Agent lane:** scaffolding ADK boilerplate, wrapping your `VECTOR_SEARCH` SQL inside a Python tool, and drafting Cloud Run deployment configs.
+  - **Data lane:** iterating on post-search eligibility SQL and pre-aggregated quarterly filing CTEs.
+  - **Anyone stuck on an error:** paste the traceback and let it inspect your actual files. Use `/diff` to review pending edits before accepting and `/permissions` to control autonomy.
+
+[Antigravity: getting started](https://antigravity.google/docs/getting-started)
+·
+[IDE overview](https://antigravity.google/docs/ide/overview/)
+·
+[CLI install and auth](https://antigravity.google/docs/cli/install)
+·
+[CLI hands-on codelab](https://codelabs.developers.google.com/antigravity-cli-hands-on)
 
 ### Step 4: Load the data
 
-**Option A: Colab Enterprise / Notebook (Recommended)**
-Import [`notebooks/c_housing_01_load_explore.ipynb`](notebooks/c_housing_01_load_explore.ipynb) into Colab Enterprise (or run it in your workstation), set `METRO` in Cell 1, and run all cells. Section 2 proves why `LIKE` fails, Section 5 exposes the 4x quarterly eviction fan-out, Section 6 scrubs residual 311 PII, and Section 12 runs 22+ automated validation checks.
+**Data lane's job.** One person runs it while the other lanes start immediately.
 
-**Option B: Headless CLI Fallback (`scripts/load.sh`)**
-From the repository root in Cloud Shell:
+1. In the Google Cloud console, search for **Colab Enterprise** and open it.
+2. **You will be prompted to enable required APIs. Accept them.** When the Colab Enterprise home page loads, it often displays a *second* **Enable APIs** banner at the top. Click that too. Seeing two prompts on a fresh project is expected.
+3. Go to **My Notebooks** -> **Import** -> source **URL**, and paste this raw notebook URL:
+
+   ```text
+   https://raw.githubusercontent.com/Bornism/A4I2026-challenge-housing/main/notebooks/c_housing_01_load_explore.ipynb
+   ```
+
+   *(If your team modifies the notebook later, get your own copy's raw URL by opening the file on GitHub and clicking **Raw**.)*
+4. Click **Import**, open the notebook, set `METRO` in the first code cell, and run the cells top to bottom. Read the markdown explanations between cells: Section 2 proves why `LIKE` fails, Section 5 exposes the 4x quarterly eviction fan-out, Section 6 verifies 311 PII scrubbing, and Section 12 runs 26 automated validation checks.
+
+**Headless CLI Fallback (`scripts/load.sh`):**
+If Colab Enterprise is slow or unavailable, run the headless loader from your cloned repository root in Cloud Shell:
 
 ```bash
 bash scripts/load.sh                 # defaults to san-francisco
@@ -244,19 +318,19 @@ bash scripts/load.sh chicago         # or new-york, austin, baton-rouge, cincinn
 bash scripts/load.sh --list          # list all six pre-staged metros
 ```
 
-Every run replaces tables cleanly (`--replace`), so switching metros or re-running is completely safe.
+Invoke it with `bash` rather than `./scripts/load.sh` so file permissions never block you. Every run replaces tables cleanly (`--replace`), so switching metros or re-running halfway through is completely safe.
 
 ### What you'll have
 
-Five validated tables in `<your-project>.a4i_housing`:
+Five validated tables in `<your-project>.a4i_housing` for your selected metro (default `San Francisco` counts shown alongside the 6-metro starter pack total):
 
-| Table | Grain | Rows (6-metro pack) | Provenance summary |
-|---|---|---:|---|
-| `acs_tract_housing_tenure` | 1 row / census tract | 378 | **Real public** US Census ACS 5-Year rent burden, income, TIGER polygons & `audit_*` shares |
-| `court_eviction_filings` | 1 row / tract-quarter (`4` quarters/tract) | 1,512 | **Modeled** quarterly tract filings calibrated to county court & ACS baselines |
-| `municipal_311_housing_complaints` | 1 row / complaint | 1,044 | **Real public** 100-block municipal 311 narratives (`990`) + `54` labeled `[Planted Case]` decoys |
-| `rental_relief_program_bulletins` | 1 row / relief program (`4`/metro) | 24 | **Public policy text** & structured habitability/residential eligibility flags |
-| `municipal_housing_ordinance_statutes` | 1 row / statute section (`3`/metro) | 18 | **Public statutory text** covering habitability, escrow, and anti-retaliation |
+| Table | Grain | Loaded rows (`San Francisco` default) | 6-metro pack total | Provenance summary |
+|---|---|---:|---:|---|
+| `acs_tract_housing_tenure` | 1 row / census tract | 42 | 378 | **Real public** US Census ACS 5-Year rent burden, income, TIGER polygons & `audit_*` shares |
+| `court_eviction_filings` | 1 row / tract-quarter (`4` quarters/tract) | 168 | 1,512 | **Modeled** quarterly tract filings calibrated to county court & ACS baselines |
+| `municipal_311_housing_complaints` | 1 row / complaint | 174 | 1,044 | **Real public** 100-block municipal 311 narratives (`165`/metro) + `9` `[Planted Case]` decoys/metro |
+| `rental_relief_program_bulletins` | 1 row / relief program | 4 | 24 | **Public policy text** & structured habitability/residential eligibility flags |
+| `municipal_housing_ordinance_statutes` | 1 row / statute section | 3 | 18 | **Public statutory text** covering habitability, escrow, and anti-retaliation |
 
 ---
 
@@ -265,7 +339,7 @@ Five validated tables in `<your-project>.a4i_housing`:
 **Say plainly what is real and what is modeled.** Judges reward teams who inspect `data_provenance` and state boundaries honestly:
 
 - **Census housing tenure is real** (US Census ACS 5-Year `B25070` & `B19013`).
-- **Municipal 311 narratives are real public records** across San Francisco, Chicago, New York, Austin, Baton Rouge, and Cincinnati, redacted to the 100-block (`block_address`) and scrubbed for residual citizen PII, paired with 9 clearly marked `DECOY-*` test cases per metro (`Example Teaching Way [Planted Case]`).
+- **Municipal 311 narratives are real public records** across San Francisco, Chicago, New York, Austin, Baton Rouge, and Cincinnati, redacted to the 100-block (`block_address`) and pre-scrubbed on disk (plus idempotently scrubbed at load) for residual citizen PII, paired with 9 clearly marked `DECOY-*` test cases per metro (`Example Teaching Way [Planted Case]`).
 - **Quarterly eviction filings are modeled**, because Princeton's Eviction Lab has zero California coverage and only ZIP-level New York City coverage. Never present modeled tract filing counts as live court dockets.
 
 ### One thing we deliberately excluded from scoring
@@ -307,6 +381,8 @@ Every challenge in this series excludes race and ethnicity (`audit_*` columns) a
 | ❌ No **unstated license** | Unlicensed web scraping grants zero reuse rights |
 | ✅ **Public domain, CC0, US Government / municipal open-data works** | Safe to stage and cite |
 
+**The license trap most likely to catch you:** anything derived from **OpenStreetMap carries the `ODbL` share-alike license**, and private eviction-scraping or landlord-rating sites are almost always all-rights-reserved or NonCommercial (`CC BY-NC`). Check the license for thirty seconds before loading, and ask a coach if you are unsure.
+
 ---
 
 ## What's in this repository
@@ -325,7 +401,11 @@ agent/                                         Empty on purpose. Your ADK agent 
 
 ## How you'll be judged
 
-Judges evaluate your GitHub repo, Google Skills project, pitch deck, and **3-minute pitch video** asynchronously against the track you chose:
+**"Finished" is not the goalpost.** Almost nobody completes every stretch idea in 4.5 hours. A team that gets three quarters of the way with clear reasoning, verified guardrails, and honest limitations will beat a team that demos something polished and hollow.
+
+**You are judged against the track you chose**, not against a single canonical answer. Say which metro and track you picked right at the start of your deck and video.
+
+**Judges score your submission asynchronously, not a live Q&A.** Put the answers to the questions below directly into your deck and your **<=3-minute pitch video**:
 
 | Dimension | Weight | The question judges are asking |
 |---|---:|---|
@@ -334,6 +414,21 @@ Judges evaluate your GitHub repo, Google Skills project, pitch deck, and **3-min
 | **Rigor & judgment** | 25 | Did you avoid the 4x quarterly join trap, filter out `DECOY-*` cases, state real vs. modeled data honestly, and run the `audit_*` Equity Audit with numbers? |
 | **Craft & communication** | 15 | Does your <=3-minute video demonstrate a live end-to-end run clearly, and can you justify your UI choice? |
 | **Bonus: range** | **+10** | Extra ambition (such as BYOD enrichment or secondary agent workflows) that sharpens the core solution |
+
+Bonus sits **on top** of the 100, so ambition never cannibalizes the fundamentals. Nail the core workflow and add nothing extra, and you can still win.
+
+### What "Rigor and judgment" actually means
+
+This is a quarter of your score and the easiest place to stand out:
+
+1. **Data decisions you can defend:** Know plainly that ACS housing tenure and 100-block 311 narratives are real public records, `court_eviction_filings` is modeled (because Eviction Lab lacks California and tract-level NYC coverage), and 9 `DECOY-*` rows per metro are planted eligibility traps.
+2. **Validation:** Show that you ran the notebook's validation checks (`Section 12`), preserved 11-character leading-zero GEOIDs, and avoided 4x quarterly join inflation.
+3. **Bias and under-reporting handling:** Keep `audit_*` columns out of scoring and embeddings, run the post-output Equity Audit (`Section 11`), and report actual numbers on whether open-311 filtering under-counts "silent distress" neighborhoods.
+4. **Knowing what your system cannot prove:** A 100-block 311 complaint corroborates block-level conditions, not an individual apartment lease or unit inspection. Saying that out loud builds trust.
+
+### A note on decisions generally
+
+Which metro you pick, whether you embed raw complaint narratives or enriched summaries, how you rank competing relief funds, and which front-end surface you choose have no single answer key. Judges reward teams who make those choices on purpose and state why.
 
 ---
 

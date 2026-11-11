@@ -20,7 +20,7 @@ Pre-staged GeoParquet starter tables covering all six metros (`San Francisco`, `
 
 ### `municipal_311_housing_complaints.parquet` (1,044 rows: 174 per metro)
 
-- **Provenance:** **990 real public 311/code-enforcement rows + 54 labeled `[Planted Case]` decoys (9 per metro).** Real rows come from official municipal open-data portals (`data.sfgov.org`, NYC Open Data, Chicago Data Portal, `data.austintexas.gov`, `data.brla.gov`, and Cincinnati Open Data), redacted to the 100-block (`block_address`) and scrubbed of residual citizen names, apartment numbers, and license plates during load.
+- **Provenance:** **990 real public 311/code-enforcement rows + 54 labeled `[Planted Case]` decoys (9 per metro).** Real rows come from official municipal open-data portals (`data.sfgov.org`, NYC Open Data, Chicago Data Portal, `data.austintexas.gov`, `data.brla.gov`, and Cincinnati Open Data), redacted to the 100-block (`block_address`) and pre-scrubbed on disk of residual citizen names, apartment numbers, exact street house numbers, and license plates (with idempotent regex scrubbing re-applied during load).
 - **Planted decoys (`DECOY-*`):** Nine synthetic rows per metro (`Example Teaching Way [Planted Case]`) test whether your pipeline filters out commercial properties (`3`), closed/abated cases (`3`), and no-violation inspections (`3`) after running `VECTOR_SEARCH`.
 
 ### `rental_relief_program_bulletins.parquet` (24 rows: 4 per metro)
