@@ -1,5 +1,7 @@
 # Affordable Housing Stability & Eviction Prevention Navigator
 
+> **ShelterWise team kit included:** this fork adds our team plan, docs, role prompts and pitch deck. Start at [docs/SHELTERWISE_README.md](docs/SHELTERWISE_README.md).
+
 **Agents for Impact 2026**
 
 ---
